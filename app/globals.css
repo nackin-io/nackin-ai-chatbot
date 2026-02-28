@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+  --muted: 100 116 139;
+}
+
+.dark {
+  --background: 2 6 23;
+  --foreground: 226 232 240;
+  --muted: 148 163 184;
+}
+
+@theme inline {
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-muted: rgb(var(--muted));
+  --font-sans: var(--font-plus-jakarta);
+  --font-mono: var(--font-fira-code);
+}
+
+* {
+  border-color: inherit;
+}
+
+body {
+  min-height: 100vh;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-plus-jakarta), "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.chat-enter {
+  animation: chat-enter 0.26s ease-out both;
+}
+
+.typing-dot {
+  height: 0.45rem;
+  width: 0.45rem;
+  border-radius: 9999px;
+  background: rgb(148 163 184);
+  animation: typing-bounce 1s infinite ease-in-out;
+}
+
+@keyframes chat-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typing-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
