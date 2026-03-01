@@ -397,7 +397,7 @@ export function ChatbotDemo() {
     initialConversation,
   ]);
   const [activeConversationId, setActiveConversationId] = React.useState<string>(
-    initialConversation.id
+    demoConversation.id
   );
   const [draft, setDraft] = React.useState("");
   const [typingConversationId, setTypingConversationId] = React.useState<string | null>(
