@@ -188,6 +188,9 @@ const DEFAULT_SETTINGS: BotSettings = {
   brandColor: "#0d9488",
 };
 
+const EMBED_SNIPPET =
+  '<script src="https://cdn.nackin.io/widget.js" data-bot-id="YOUR_BOT_ID" data-color="#0d9488" data-position="bottom-right"></script>';
+
 function delay(ms: number) {
   return new Promise<void>((resolve) => {
     window.setTimeout(resolve, ms);
@@ -332,6 +335,50 @@ function createConversation(settings: BotSettings): Conversation {
   };
 }
 
+function createDemoConversation(): Conversation {
+  const end = Date.now();
+  const start = end - 8 * 60_000;
+  const step = (end - start) / 6;
+  const messages: Array<Pick<Message, "role" | "content">> = [
+    {
+      role: "bot",
+      content:
+        "Hi! I can help with product details, order updates, refunds, and technical troubleshooting.",
+    },
+    { role: "user", content: "Hi, what are your pricing plans?" },
+    {
+      role: "bot",
+      content:
+        "We offer three plans: Starter ($39/mo), Growth ($129/mo), and Enterprise (custom). All include unlimited conversations and 24/7 AI support. Which fits your needs?",
+    },
+    { role: "user", content: "I need to request a refund for order #38291" },
+    {
+      role: "bot",
+      content:
+        "I found order #38291 placed 3 days ago. Refunds are processed within 3-5 business days to the original payment method. Initiating now!",
+    },
+    { role: "user", content: "Thank you, that is perfect!" },
+    {
+      role: "bot",
+      content:
+        "You are all set! Refund initiated, confirmation email on its way. Anything else I can help with?",
+    },
+  ];
+
+  return {
+    id: nowMessageId(),
+    title: "Pricing & Refund Request",
+    category: "refund",
+    updatedAt: end,
+    messages: messages.map((message, index) => ({
+      id: nowMessageId(),
+      role: message.role,
+      content: message.content,
+      timestamp: Math.round(start + step * index),
+    })),
+  };
+}
+
 function getConversationPreview(conversation: Conversation) {
   const latest = conversation.messages.at(-1);
   if (!latest) return "No messages yet";
@@ -339,12 +386,14 @@ function getConversationPreview(conversation: Conversation) {
 }
 
 export function ChatbotDemo() {
+  const demoConversation = React.useRef<Conversation>(createDemoConversation()).current;
   const initialConversation = React.useRef<Conversation>(
     createConversation(DEFAULT_SETTINGS)
   ).current;
 
   const [settings, setSettings] = React.useState<BotSettings>(DEFAULT_SETTINGS);
   const [conversations, setConversations] = React.useState<Conversation[]>(() => [
+    demoConversation,
     initialConversation,
   ]);
   const [activeConversationId, setActiveConversationId] = React.useState<string>(
@@ -357,7 +406,17 @@ export function ChatbotDemo() {
   const [selectedFlow, setSelectedFlow] = React.useState<FlowKey | null>(null);
   const [widgetOpen, setWidgetOpen] = React.useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const copyResetTimeoutRef = React.useRef<number | null>(null);
   const messagesRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (copyResetTimeoutRef.current) {
+        window.clearTimeout(copyResetTimeoutRef.current);
+      }
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!conversations.some((conversation) => conversation.id === activeConversationId)) {
@@ -419,6 +478,21 @@ export function ChatbotDemo() {
     setDraft("");
     setMobileSidebarOpen(false);
   }, [settings]);
+
+  const copyEmbedSnippet = React.useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(EMBED_SNIPPET);
+      setCopied(true);
+      if (copyResetTimeoutRef.current) {
+        window.clearTimeout(copyResetTimeoutRef.current);
+      }
+      copyResetTimeoutRef.current = window.setTimeout(() => {
+        setCopied(false);
+      }, 2_000);
+    } catch {
+      setCopied(false);
+    }
+  }, []);
 
   const sendMessage = React.useCallback(
     async (value?: string, flowOverride?: FlowKey) => {
@@ -810,6 +884,22 @@ export function ChatbotDemo() {
                 </div>
               </CardContent>
             </Card>
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+              <div className="flex items-center justify-between gap-3">
+                <Label>Embed Code</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    void copyEmbedSnippet();
+                  }}
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </Button>
+              </div>
+              <pre className="mt-2 rounded-lg bg-slate-900 p-4 text-xs text-emerald-400 font-mono overflow-x-auto whitespace-pre">{EMBED_SNIPPET}</pre>
+            </div>
           </TabsContent>
 
           <TabsContent value="settings">
