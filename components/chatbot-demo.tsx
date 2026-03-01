@@ -185,7 +185,7 @@ const DEFAULT_SETTINGS: BotSettings = {
   botAvatar: "N",
   welcomeMessage:
     "Hi! I can help with product details, order updates, refunds, and technical troubleshooting.",
-  brandColor: "#4f46e5",
+  brandColor: "#0d9488",
 };
 
 function delay(ms: number) {
